@@ -2,6 +2,9 @@ const Sauce = require ('../models/Sauce');
 const User = require ('../models/User');
 const fs = require('fs');
 
+/**
+ * CRÉER UNE SAUCE
+ */
 exports.createSauce = (req, res, next) => {
   const sauceObject = JSON.parse(req.body.sauce);
   delete sauceObject._id;
@@ -18,6 +21,9 @@ exports.createSauce = (req, res, next) => {
     .catch(error => res.status(400).json({ error }));
 };
 
+/**
+ * MODIFIER UNE SAUCE
+ */
 exports.modifySauce = (req, res, next) => {
   const sauceObject = req.file ?
   {
@@ -29,6 +35,9 @@ Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
   .catch(error => res.status(400).json({ error }));
 };
 
+/**
+ * SUPPRIMER UNE SAUCE
+ */
 exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
   .then(sauce => {
@@ -42,14 +51,51 @@ exports.deleteSauce = (req, res, next) => {
   .catch(error => res.status(500).json({ error }));
 };
 
+/**
+ * AFFICHER UNE SEULE SAUCE
+ */
 exports.getOneSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })
         .then(sauce => res.status(200).json(sauce))
         .catch(error => res.status(404).json({ error }));
 };
 
+/**
+ * AFFICHER TOUTES LES SAUCES
+ */
 exports.getAllSauces = (req, res, next) => {
     Sauce.find()
     .then(sauces => res.status(200).json(sauces))
     .catch(error => res.status(400).json({ error }));
+};
+
+/**
+ *  LIKER OU DISLIKER UNE SAUCE
+ */
+exports.likeSauce = (req, res, next) => {
+  let message = '';
+  Sauce.findOne({ _id: req.params.id })
+  .then(sauce => { 
+    if (req.body.like == 1)
+      {
+        sauce.usersLiked.push(req.body.userId);
+        sauce.likes += req.body.like;
+        Sauce.updateOne(
+          { _id: req.params.id}, 
+          {
+            $inc: {likes: 1},
+            $push: {usersLiked: req.body.userId},
+            _id: req.params.id
+          } )
+          .then(() => res.status(201).json({ message: 'Sauce Likée'}))
+          .catch(error => res)
+      }
+    else if (req.body.like == -1)
+    {
+      sauce.usersDisliked.push(req.body.UserId);
+    }
+    
+
+  })
+  .catch(error => res.status(404).json({ error }));
 };
