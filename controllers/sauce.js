@@ -90,12 +90,48 @@ exports.likeSauce = (req, res, next) => {
           .then(() => res.status(201).json({ message: 'Sauce Likée'}))
           .catch(error => res)
       }
+    // Cas ou l'utilisateur dislike une sauce
     else if (req.body.like == -1)
     {
-      sauce.usersDisliked.push(req.body.UserId);
+      sauce.usersDisliked.push(req.body.userId);
+      sauce.dislikes += req.body.like;
+      Sauce.updateOne(
+        { _id: req.params.id}, 
+        {
+          $inc: {dislikes: 1},
+          $push: {usersDisliked: req.body.userId},
+          _id: req.params.id
+        } )
+        .then(() => res.status(201).json({ message: 'Sauce Dislikée'}))
+        .catch(error => res)
     }
-    
-
-  })
-  .catch(error => res.status(404).json({ error }));
-};
+    // check si l'user est inclus dans un des deux tableaux pour faire une double condition   
+    // else if (req.body.like == 0)
+    else if (req.body.like == 0)
+    {
+      if (sauce.usersLiked.includes(req.body.userId))
+        {
+          Sauce.updateOne(
+          { _id: req.params.id}, 
+          {
+            $inc: {likes: -1},
+            $pull: {usersLiked: req.body.userId},
+            _id: req.params.id
+          } )
+          .then(() => res.status(201).json({ message: 'Annulation like'}))
+          .catch(error => res)
+        }
+      else
+        {
+            Sauce.updateOne(
+          { _id: req.params.id}, 
+          {
+            $inc: {dislikes: -1},
+            $pull: {usersDisliked: req.body.userId},
+            _id: req.params.id
+          } )
+          .then(() => res.status(201).json({ message: 'Annulation dislike'}))
+          .catch(error => res)
+        }
+    }
+  });}
