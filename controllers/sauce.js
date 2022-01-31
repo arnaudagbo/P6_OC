@@ -76,7 +76,7 @@ exports.likeSauce = (req, res, next) => {
   let message = '';
   Sauce.findOne({ _id: req.params.id })
   .then(sauce => { 
-    if (req.body.like == 1)
+    if (req.body.like == 1 && !sauce.usersLiked.includes(req.body.userId))
       {
         sauce.usersLiked.push(req.body.userId);
         sauce.likes += req.body.like;
@@ -91,7 +91,7 @@ exports.likeSauce = (req, res, next) => {
           .catch(error => res)
       }
     // Cas ou l'utilisateur dislike une sauce
-    else if (req.body.like == -1)
+    else if (req.body.like == -1 && !sauce.usersDisliked.includes(req.body.userId)) 
     {
       sauce.usersDisliked.push(req.body.userId);
       sauce.dislikes += req.body.like;

@@ -1,13 +1,15 @@
+const session = require('cookie-session');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const path = require('path');
-
+const helmet = require('helmet');
+require('dotenv').config();
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const { dirname } = require('path');
 
-mongoose.connect('mongodb+srv://arnaud:Aarnowlin75015!@cluster0.t6itt.mongodb.net/Cluster0?retryWrites=true&w=majority',
+mongoose.connect(process.env.Mongo,
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
@@ -28,5 +30,22 @@ app.use(bodyParser.json());
 app.use('/images', express.static(path.join( __dirname, 'images')));
 app.use('/api/sauces', sauceRoutes);
 app.use('/api/auth', userRoutes);
+
+// Sécurise les headers
+app.use(helmet());
+
+// Sécurise les cookies
+var expiryDate = new Date( Date.now() + 60 * 60 * 1000 ); // 1 heure
+app.use(session({
+  name: 'session',
+  keys: ['secret_key'],
+  cookie: { secure: true,
+            httpOnly: true,
+            domain: 'piiquante.com',
+            path: '/login',
+            expires: expiryDate
+          }
+  })
+);
 
 module.exports = app; 
