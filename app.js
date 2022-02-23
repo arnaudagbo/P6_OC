@@ -8,6 +8,10 @@ require('dotenv').config();
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const { dirname } = require('path');
+var ExpressBrute = require('express-brute');
+
+var store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
+var bruteforce = new ExpressBrute(store);
 
 mongoose.connect(process.env.Mongo,
   { useNewUrlParser: true,
@@ -29,7 +33,11 @@ app.use(bodyParser.json());
 
 app.use('/images', express.static(path.join( __dirname, 'images')));
 app.use('/api/sauces', sauceRoutes);
-app.use('/api/auth', userRoutes);
+app.use('/api/auth', userRoutes ,
+bruteforce.prevent, // error 429 if we hit this route too often
+function (req, res, next) {
+    res.send('Success!');
+});
 
 // Sécurise les headers
 app.use(helmet());
