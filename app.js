@@ -9,6 +9,23 @@ const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const { dirname } = require('path');
 var ExpressBrute = require('express-brute');
+const rateLimit = require('express-rate-limit');
+
+const apiLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+})
+
+const createAccountLimiter = rateLimit({
+	windowMs: 60 * 60 * 1000, // 1 hour
+	max: 1, // Limit each IP to 1 create account requests per `window` (here, per hour)
+	message:
+		'Too many accounts created from this IP, please try again after an hour',
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+})
 
 var store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
 var bruteforce = new ExpressBrute(store);
@@ -32,12 +49,8 @@ app.use((req, res, next) => {
 app.use(bodyParser.json()); 
 
 app.use('/images', express.static(path.join( __dirname, 'images')));
-app.use('/api/sauces', sauceRoutes);
-app.use('/api/auth', userRoutes ,
-bruteforce.prevent, // error 429 if we hit this route too often
-function (req, res, next) {
-    res.send('Success!');
-});
+app.use('/api/sauces', sauceRoutes, apiLimiter);
+app.use('/api/auth', userRoutes , createAccountLimiter);
 
 // Sécurise les headers
 app.use(helmet());

@@ -78,8 +78,6 @@ exports.likeSauce = (req, res, next) => {
   .then(sauce => { 
     if (req.body.like == 1 && !sauce.usersLiked.includes(req.body.userId))
       {
-        sauce.usersLiked.push(req.body.userId);
-        sauce.likes += req.body.like;
         Sauce.updateOne(
           { _id: req.params.id}, 
           {
@@ -93,8 +91,6 @@ exports.likeSauce = (req, res, next) => {
     // Cas ou l'utilisateur dislike une sauce
     else if (req.body.like == -1 && !sauce.usersDisliked.includes(req.body.userId)) 
     {
-      sauce.usersDisliked.push(req.body.userId);
-      sauce.dislikes += req.body.like;
       Sauce.updateOne(
         { _id: req.params.id}, 
         {
