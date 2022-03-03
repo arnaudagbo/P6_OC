@@ -20,7 +20,7 @@ const apiLimiter = rateLimit({
 
 const createAccountLimiter = rateLimit({
 	windowMs: 60 * 60 * 1000, // 1 hour
-	max: 1, // Limit each IP to 1 create account requests per `window` (here, per hour)
+	max: 3, // Limit each IP to 3 create account requests per `window` (here, per hour)
 	message:
 		'Too many accounts created from this IP, please try again after an hour',
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
@@ -49,8 +49,9 @@ app.use((req, res, next) => {
 app.use(bodyParser.json()); 
 
 app.use('/images', express.static(path.join( __dirname, 'images')));
-app.use('/api/sauces', sauceRoutes, apiLimiter);
-app.use('/api/auth', userRoutes , createAccountLimiter);
+app.use('/api/sauces', sauceRoutes);
+app.use('/api/auth', userRoutes  );
+
 
 // Sécurise les headers
 app.use(helmet());
